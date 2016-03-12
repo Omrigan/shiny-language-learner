@@ -3,7 +3,7 @@ from pymongo import MongoClient
 import settings
 from enum import Enum
 import time
-
+from xml.etree import ElementTree
 import requests
 app = Flask(__name__)
 
@@ -36,22 +36,30 @@ def processString(id, string):
     print (string)
     if user['state']==States.idle:
         baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
+        #correct = requests.get('http://suggestqueries.google.com/complete/search?client=firefox&q=%s' %(string)).json()
+        baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
+        correction = requests.get('http://service.afterthedeadline.com/checkDocument', {'data': string}).text
+        correction = ElementTree(correction)
+
+        string = correction
+        string = string[0].upper() + string[1:]
+
         transtaltion = requests.get(baseurl, {
             'key': settings.translate_yandex['token'],
             'lang': 'ru',
             'text': string
         })
-        user['wordlist'] = transtaltion.json()['text']
-        out_str = "Choose from following:\n"
-        for i, w in zip(range(len(user['wordlist'])), user['wordlist']):
-            out_str += '%s - %s' %(1+i, w)
-        postUpdate(id, out_str)
-        user['state'] = States.translates_proposed
-    elif user['state'] == States.translates_proposed:
-        val = int(string)-1
-        out_word = user['wordlist'][val]
-        postUpdate(id, "Word added " + out_word)
-        user['state'] = States.idle
+        out_word = transtaltion.json()['text'][0]
+    #     out_str = "Choose from following:\n"
+    #     for i, w in zip(range(len(user['wordlist'])), user['wordlist']):
+    #         out_str += '%s - %s' %(1+i, w)
+    #     postUpdate(id, out_str)
+    #     user['state'] = States.translates_proposed
+    # elif user['state'] == States.translates_proposed:
+    #     val = int(string)-1
+    #     out_word = user['wordlist'][val]
+        postUpdate(id, "Word added\n%s - %s" % (string, out_word))
+
 
 
 
