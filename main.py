@@ -1,8 +1,10 @@
 from flask import Flask
 from pymongo import MongoClient
 import settings
+import shuffle
 from enum import Enum
-import time
+
+import time, datetime
 from xml.etree import ElementTree
 from bs4 import BeautifulSoup
 import requests
@@ -12,74 +14,115 @@ app = Flask(__name__)
 class States():
     idle = 1
     translates_proposed = 2
-    train = 3
 
 
 
-
-
-
-def postUpdate(chat_id, string):
+def sendMessage(chat_id, string):
     baseurl = 'https://api.telegram.org/bot'
     url = baseurl + settings.bot['token'] + '/sendMessage'
     resp = requests.get(url, params={
         'chat_id': chat_id,
         'text': string,
     })
-    # params['offset']+=1
-    # db.meta.update({'_id' : params['_id']}, params)
-def etree_to_dict(t):
-    return {t.tag : map(etree_to_dict, t.iterchildren()) or t.text}
 
-def processString(chat_id, string):
-    print (string)
-    user = users.find_one({'chat_id': chat_id})
-    if user is None:
-        user = {'chat_id': chat_id,
-                'state': States.idle,
-                'words': []}
-    if user['state']==States.idle:
-        baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
-        #correct = requests.get('http://suggestqueries.google.com/complete/search?client=firefox&q=%s' %(string)).json()
-        baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
-        correction = requests.get(baseurl_correction, {'data': string}).text
-        correction = BeautifulSoup(correction)
+stages = {
+    1: datetime.timedelta(hours=0),
+    2: datetime.timedelta(hours=8),
+    3: datetime.timedelta(hours=24),
+    4: datetime.timedelta(weeks=100)
+}
 
-
-        if correction.find("option") is not None:
-            string = correction.find("option").string
-        string = string[0].upper() + string[1:]
-
-        transtaltion = requests.get(baseurl, {
-            'key': settings.translate_yandex['token'],
-            'lang': 'ru',
-            'text': string
-        })
-
-        out_word = transtaltion.json()['text'][0]
-    #     out_str = "Choose from following:\n"
-    #     for i, w in zip(range(len(user['wordlist'])), user['wordlist']):
-    #         out_str += '%s - %s' %(1+i, w)
-    #     postUpdate(id, out_str)
-    #     user['state'] = States.translates_proposed
-    # elif user['state'] == States.translates_proposed:
-    #     val = int(string)-1
-    #     out_word = user['wordlist'][val]
-        user['words'].append((string, out_word))
-        users.save(user)
-        postUpdate(user['chat_id'], "Word added\n%s - %s" % (string, out_word))
+def startTrain(user, string):
+    if len(user['words'])>8:
+        user['train']['type'] = 1
+        wordlist = shuffle(sorted(user['words'])[0:8])[0:4]
 
 
 
+def addWord(user, string):
+    baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
+    #correct = requests.get('http://suggestqueries.google.com/complete/search?client=firefox&q=%s' %(string)).json()
+    baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
+    correction = requests.get(baseurl_correction, {'data': string}).text
+    correction = BeautifulSoup(correction)
 
+
+    if correction.find("option") is not None:
+        string = correction.find("option").string
+    string = string[0].upper() + string[1:]
+
+    transtaltion = requests.get(baseurl, {
+        'key': settings.translate_yandex['token'],
+        'lang': 'ru',
+        'text': string
+    })
+
+    out_word = transtaltion.json()['text'][0]
+#     out_str = "Choose from following:\n"
+#     for i, w in zip(range(len(user['wordlist'])), user['wordlist']):
+#         out_str += '%s - %s' %(1+i, w)
+#     postUpdate(id, out_str)
+#     user['state'] = States.translates_proposed
+# elif user['state'] == States.translates_proposed:
+#     val = int(string)-1
+#     out_word = user['wordlist'][val]
+    user['words'].append({"en": string, "ru": out_word,
+                          "stage": 1,
+                          "expiration_date": datetime.datetime.utcnow() + stages[1],
+                          "creation_date": datetime.datetime.utcnow()})
+    users.save(user)
+    sendMessage(user['chat_id'], "Word added\n%s - %s" % (string, out_word))
 
 
 params = {}
 
+def eraseLastWord(user, text):
+    if(len(user['words'])>0):
+        str_out = "%s - %s" % (user['words'][-1]['en'], user['words'][-1]['ru'])
+        user['words'] = user['words'][:-1]
+        sendMessage(user['chat_id'], "Last word erased\n" + str_out)
+
+def getListWord(user, text):
+    str_out = "\n".join(["%s - %s" % (w['en'], w['ru']) for w in user['words']])
+    sendMessage(user['chat_id'], str_out)
+
+
+comands = {
+    'eraselast': eraseLastWord,
+    'getlist': getListWord,
+    'starttrain': startTrain
+}
+
+
+def parseAction(chat_id, text):
+    print (text)
+    user = users.find_one({'chat_id': chat_id})
+    if user is None:
+        user = {'chat_id': chat_id,
+                'state': States.idle,
+                'words': [],
+                'train': {
+                    'type': 0,
+                    'words': 0,
+                    'correct': 0,
+                    'cadidacies': []
+                }}
+    if text[0]=='/': #Command
+        cmd = text[1:].lower()
+        if cmd in comands:
+            comands[cmd](user, text)
+    else:
+        if user['state']==States.idle:
+            addWord(user, text)
+    users.save(user)
+
+
+
+
+
 def getUpdates():
     baseurl = 'https://api.telegram.org/bot'
     url = baseurl + settings.bot['token'] + '/getUpdates'
-
     updates = requests.get(url, {
         'offset': params['offset']
     })
@@ -92,7 +135,7 @@ def getUpdates():
                 chat_id = u['message']['chat']['id']
                 text = u['message']['text']
                 params['offset'] = max(params['offset'], u['update_id']+1)
-                processString(chat_id, text)
+                parseAction(chat_id, text)
 
     db.meta.update({'_id' : params['_id']}, params)
 
