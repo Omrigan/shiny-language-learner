@@ -21,8 +21,7 @@ class States():
 
 
 
-
-
+logger = logging.getLogger("bot")
 def addWord(user, string):
     baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
     #correct = requests.get('http://suggestqueries.google.com/complete/search?client=firefox&q=%s' %(string)).json()
@@ -84,11 +83,12 @@ comands = {
 }
 
 def parseAction(chat_id, text):
-    logging.info("%s - %s" %(chat_id, text))
+    logger.warning("%s - %s" %(chat_id, text))
     user = users.find_one({'chat_id': chat_id})
     if user is None:
         user = {'chat_id': chat_id,
                 'state': States.idle,
+
                 'words': [],
                 'train': {
                     'type': 0,
@@ -130,21 +130,30 @@ def getUpdates():
                 params['offset'] = max(params['offset'], u['update_id']+1)
                 parseAction(chat_id, text)
 
-    db.meta.update({'_id' : params['_id']}, params)
-
-@app.route("/")
-def hello():
-    pass
+    db.meta.save(params)
 
 
 if __name__ == "__main__":
     global client
     global words
-    logging.basicConfig(level=logging.INFO)
-    db = MongoClient(secret_settings.mongo['host']).telegram
+
+#    logging.l
+    ###LOGGING
+    access = logging.FileHandler('access.log')
+    access.setLevel(logging.INFO)
+    access.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+
+    error = logging.FileHandler('error.log')
+    error.setLevel(logging.ERROR)
+    error.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(access)
+    logger.addHandler(error)
+    print(requests.__version__)
+    db = MongoClient(secret_settings.mongo['uri']).telegram
     users = db.users
-    params  = db.meta.find_one()
+    #params = db.meta.find_one()
     params['offset'] = 0
+    logging.warning('Started')
     while True:
         getUpdates()
         time.sleep(0.1)

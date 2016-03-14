@@ -9,7 +9,7 @@ def startTrain(user, string):
     out_str = ""
     if(user['train']['type']==1):
         try:
-            a = int(string)
+            a = int(string) - 1
         except ValueError:
             telegram.sendMessage(user['chat_id'], "Error parse!")
             return
@@ -32,7 +32,7 @@ def startTrain(user, string):
         user['train']['correct'] = cnt
         out_str += user['train']['word'] + "\n"
         for i, w in zip(range(4), wordlist):
-            out_str += "%s - %s\n" % (i, w['ru'])
+            out_str += "%s - %s\n" % (i+1, w['ru'])
     else:
         out_str += "No words\n"
         user['train']['type'] = 0
