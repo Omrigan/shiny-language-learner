@@ -1,7 +1,7 @@
 from flask import Flask
 from pymongo import MongoClient
-import settings
-import shuffle
+import secret_settings
+import random
 from enum import Enum
 
 import time, datetime
@@ -19,7 +19,7 @@ class States():
 
 def sendMessage(chat_id, string):
     baseurl = 'https://api.telegram.org/bot'
-    url = baseurl + settings.bot['token'] + '/sendMessage'
+    url = baseurl + secret_settings.bot['token'] + '/sendMessage'
     resp = requests.get(url, params={
         'chat_id': chat_id,
         'text': string,
@@ -33,9 +33,42 @@ stages = {
 }
 
 def startTrain(user, string):
-    if len(user['words'])>8:
+    out_str = ""
+    if(user['train']['type']==1):
+        try:
+            a = int(string)
+        except ValueError:
+            sendMessage(user['chat_id'], "Error parse!")
+            return
+        for w in user['words']:
+            if w['en']==user['train']['word']:
+                if user['train']['correct']==a:
+                    out_str+="Correct\n"
+                    w['stage']+=1
+                    w['expiration_date'] = datetime.datetime.utcnow() + stages[w['stage']]
+                else:
+                    out_str+="Incorrect\n"
+
+    if len(list(filter(lambda w: w['expiration_date'] < datetime.datetime.utcnow(), user['words'])))>8:
         user['train']['type'] = 1
-        wordlist = shuffle(sorted(user['words'])[0:8])[0:4]
+        wordlist = sorted(user['words'], key=lambda x: x['expiration_date'])[0:8]
+        random.shuffle(wordlist)
+        wordlist = wordlist[0:4]
+        cnt = random.randint(0, 3)
+        user['train']['word'] = wordlist[cnt]['en']
+        user['train']['correct'] = cnt
+        out_str += user['train']['word'] + "\n"
+        for i, w in zip(range(4), wordlist):
+            out_str += "%s - %s\n" % (i, w['ru'])
+    else:
+        out_str += "No words\n"
+    sendMessage(user['chat_id'], out_str)
+
+def endTrain(user, string):
+    user['train']['type'] = 0
+    sendMessage(user['chat_id'], "Train ended")
+
+
 
 
 
@@ -52,7 +85,7 @@ def addWord(user, string):
     string = string[0].upper() + string[1:]
 
     transtaltion = requests.get(baseurl, {
-        'key': settings.translate_yandex['token'],
+        'key': secret_settings.translate_yandex['token'],
         'lang': 'ru',
         'text': string
     })
@@ -66,13 +99,18 @@ def addWord(user, string):
 # elif user['state'] == States.translates_proposed:
 #     val = int(string)-1
 #     out_word = user['wordlist'][val]
-    user['words'].append({"en": string, "ru": out_word,
-                          "stage": 1,
-                          "expiration_date": datetime.datetime.utcnow() + stages[1],
-                          "creation_date": datetime.datetime.utcnow()})
-    users.save(user)
-    sendMessage(user['chat_id'], "Word added\n%s - %s" % (string, out_word))
-
+    already_has = False
+    for w in user['words']:
+        already_has |= w["en"]==string
+    if not already_has:
+        user['words'].append({"en": string, "ru": out_word,
+                              "stage": 1,
+                              "expiration_date": datetime.datetime.utcnow() + stages[1],
+                              "creation_date": datetime.datetime.utcnow()})
+        users.save(user)
+        sendMessage(user['chat_id'], "Word added\n%s - %s" % (string, out_word))
+    else:
+        sendMessage(user['chat_id'], 'Already exist!')
 
 params = {}
 
@@ -90,7 +128,8 @@ def getListWord(user, text):
 comands = {
     'eraselast': eraseLastWord,
     'getlist': getListWord,
-    'starttrain': startTrain
+    'starttrain': startTrain,
+    'endtrain': endTrain,
 }
 
 
@@ -107,12 +146,21 @@ def parseAction(chat_id, text):
                     'correct': 0,
                     'cadidacies': []
                 }}
+    if 'train' not in user:
+        user['train'] = {
+                    'type': 0,
+                    'words': 0,
+                    'correct': 0,
+                    'cadidacies': []
+                }
     if text[0]=='/': #Command
         cmd = text[1:].lower()
         if cmd in comands:
             comands[cmd](user, text)
     else:
-        if user['state']==States.idle:
+        if user['train']['type']!=0:
+            startTrain(user, text)
+        elif user['state']==States.idle:
             addWord(user, text)
     users.save(user)
 
@@ -122,7 +170,7 @@ def parseAction(chat_id, text):
 
 def getUpdates():
     baseurl = 'https://api.telegram.org/bot'
-    url = baseurl + settings.bot['token'] + '/getUpdates'
+    url = baseurl + secret_settings.bot['token'] + '/getUpdates'
     updates = requests.get(url, {
         'offset': params['offset']
     })
@@ -147,7 +195,7 @@ def hello():
 if __name__ == "__main__":
     global client
     global words
-    db = MongoClient(settings.mongo['host']).telegram
+    db = MongoClient(secret_settings.mongo['host']).telegram
     users = db.users
     params  = db.meta.find_one()
     params['offset'] = 0
