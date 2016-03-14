@@ -62,6 +62,7 @@ def startTrain(user, string):
             out_str += "%s - %s\n" % (i, w['ru'])
     else:
         out_str += "No words\n"
+        user['train']['type'] = 0
     sendMessage(user['chat_id'], out_str)
 
 def endTrain(user, string):
