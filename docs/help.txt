@@ -1,0 +1,6 @@
+Firstly,  add some words to wordlist. Just say me some English words
+After adding at least 8 words, you may start training with /starttrain and end with /endtrain
+While training you will be proposed with one English word and four Russian translates and you need to choose the correct one
+To erase last added word print /eraselast
+To view list of all words print /getlist
+omrigann@gmail.com

@@ -2,3 +2,4 @@ eraselast - Erase last word
 getlist - Get all words
 starttrain - Start simple train
 endtrain - End train
+help - Help

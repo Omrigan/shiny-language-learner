@@ -22,6 +22,8 @@ class States():
 
 
 logger = logging.getLogger("bot")
+help_text = open('docs/help.txt').read()
+changelog_text = open('docs/changelog.txt').read()
 def addWord(user, string):
     baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
     #correct = requests.get('http://suggestqueries.google.com/complete/search?client=firefox&q=%s' %(string)).json()
@@ -74,12 +76,24 @@ def getListWord(user, text):
     str_out = "\n".join(["%s - %s" % (w['en'], w['ru']) for w in user['words']])
     telegram.sendMessage(user['chat_id'], str_out)
 
+def start(user, text):
+    telegram.sendMessage(user['chat_id'], """
+    Welcome
+    I am an EnglishWordRepeater bot.
+    To learn how to use me, print /help
+    """)
+def help(user, text):
+    telegram.sendMessage(user['chat_id'], help_text)
+
+
 
 comands = {
     'eraselast': eraseLastWord,
     'getlist': getListWord,
     'starttrain': startTrain,
     'endtrain': endTrain,
+    'start': start,
+    'help': help
 }
 
 def parseAction(chat_id, text):
