@@ -9,6 +9,7 @@ def sendMessage(chat_id, string):
     resp = requests.get(url, params={
         'chat_id': chat_id,
         'text': string,
+        'timeout': 20,
     })
     if resp.status_code!=200:
         logger.error("Cannot send message %s - %s" % (chat_id, string))
@@ -18,7 +19,8 @@ def getUpdates(offset):
     baseurl = 'https://api.telegram.org/bot'
     url = baseurl + secret_settings.bot['token'] + '/getUpdates'
     updates = requests.get(url, {
-        'offset': offset
+        'offset': offset,
+        'timeout': 20,
     })
     if updates.status_code!=200:
         logger.error("Cannot get updates %s" % (offset, ))

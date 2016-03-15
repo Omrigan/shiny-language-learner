@@ -162,7 +162,6 @@ if __name__ == "__main__":
     error.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     logger.addHandler(access)
     logger.addHandler(error)
-    print(requests.__version__)
     db = MongoClient(secret_settings.mongo['uri']).telegram
     users = db.users
     #params = db.meta.find_one()
