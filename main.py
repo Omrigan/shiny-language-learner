@@ -4,11 +4,11 @@ import secret_settings, study_settings
 import telegram
 
 from train import startTrain, endTrain
-import random
+import random, re
 from enum import Enum
 
 import time, datetime
-import logging
+import logging, argparse
 from xml.etree import ElementTree
 from bs4 import BeautifulSoup
 import requests
@@ -27,6 +27,11 @@ changelog_text = open('docs/changelog.txt').read()
 def addWord(user, string):
     baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
     #correct = requests.get('http://suggestqueries.google.com/complete/search?client=firefox&q=%s' %(string)).json()
+
+    string = re.sub(r'[^A-Za-z\s]', '', string)
+    string = re.sub(r'\Wk+', ' ', string)
+    string = string[0].upper() + string[1:]
+
     baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
     correction = requests.get(baseurl_correction, {'data': string}).text
     correction = BeautifulSoup(correction)
@@ -34,7 +39,6 @@ def addWord(user, string):
 
     if correction.find("option") is not None:
         string = correction.find("option").string
-    string = string[0].upper() + string[1:]
 
     transtaltion = requests.get(baseurl, {
         'key': secret_settings.translate_yandex['token'],
@@ -146,12 +150,16 @@ def getUpdates():
 
     db.meta.save(params)
 
-
 if __name__ == "__main__":
     global client
     global words
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--debug', action='store_true')
+    args = parser.parse_args()
+    secret_settings.configure(args.debug)
 
-#    logging.l
+
+
     ###LOGGING
     access = logging.FileHandler('access.log')
     access.setLevel(logging.INFO)
@@ -162,9 +170,16 @@ if __name__ == "__main__":
     error.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     logger.addHandler(access)
     logger.addHandler(error)
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+        logging.debug("Debug mode")
+
+
     db = MongoClient(secret_settings.mongo['uri']).telegram
     users = db.users
-    #params = db.meta.find_one()
+
+
+
     params['offset'] = 0
     logging.warning('Started')
     while True:
