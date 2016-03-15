@@ -14,4 +14,5 @@ RUN apt-get install -y python3 python3-dev python3-pip python python-pip python-
 RUN pip3 install --upgrade pip
 ADD . /root/bot
 RUN pip3 install --upgrade  -r /root/bot/requirements.txt
+WORKDIR /root/bot
 CMD python3 /root/bot/main.py
