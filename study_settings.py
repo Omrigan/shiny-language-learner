@@ -7,9 +7,6 @@ stages = {
     5: datetime.timedelta(weeks=1),
     6: datetime.timedelta(weeks=4),
     7: datetime.timedelta(weeks=12),
-    8: datetime.timedelta(weeks=12),
-    9: datetime.timedelta(weeks=12),
-    10: datetime.timedelta(weeks=12),
-    11: datetime.timedelta(weeks=12),
-
 }
+min_stage = 1
+max_stage = 7

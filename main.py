@@ -2,6 +2,7 @@ from flask import Flask
 from pymongo import MongoClient
 import secret_settings, study_settings
 import telegram
+from nltk.stem import WordNetLemmatizer
 
 from train import startTrain, endTrain
 import random, re
@@ -24,12 +25,15 @@ class States():
 logger = logging.getLogger("bot")
 help_text = open('docs/help.txt').read()
 changelog_text = open('docs/changelog.txt').read()
+wnl = WordNetLemmatizer()
 def addWord(user, string):
     baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
     #correct = requests.get('http://suggestqueries.google.com/complete/search?client=firefox&q=%s' %(string)).json()
 
     string = re.sub(r'[^A-Za-z\s]', '', string)
     string = re.sub(r'\Wk+', ' ', string)
+    string = string.lower()
+    #string = wnl.lemmatize(string)
     string = string[0].upper() + string[1:]
 
     baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
@@ -40,33 +44,27 @@ def addWord(user, string):
     if correction.find("option") is not None:
         string = correction.find("option").string
 
+
     transtaltion = requests.get(baseurl, {
         'key': secret_settings.translate_yandex['token'],
         'lang': 'ru',
         'text': string
     })
-
     out_word = transtaltion.json()['text'][0]
-#     out_str = "Choose from following:\n"
-#     for i, w in zip(range(len(user['wordlist'])), user['wordlist']):
-#         out_str += '%s - %s' %(1+i, w)
-#     postUpdate(id, out_str)
-#     user['state'] = States.translates_proposed
-# elif user['state'] == States.translates_proposed:
-#     val = int(string)-1
-#     out_word = user['wordlist'][val]
+
+
     already_has = False
     for w in user['words']:
         already_has |= w["en"]==string
     if not already_has:
         user['words'].append({"en": string, "ru": out_word,
-                              "stage": 1,
+                              "stage": study_settings.min_stage,
                               "expiration_date": datetime.datetime.utcnow() + study_settings.stages[1],
                               "creation_date": datetime.datetime.utcnow()})
         users.save(user)
         telegram.sendMessage(user['chat_id'], "Word added\n%s - %s" % (string, out_word))
     else:
-        telegram.sendMessage(user['chat_id'], 'Already exist!')
+        telegram.sendMessage(user['chat_id'], "Already exist!\n%s - %s" % (string, out_word))
 
 params = {}
 
@@ -77,7 +75,7 @@ def eraseLastWord(user, text):
         telegram.sendMessage(user['chat_id'], "Last word erased\n" + str_out)
 
 def getListWord(user, text):
-    str_out = "\n".join(["%s - %s" % (w['en'], w['ru']) for w in user['words']])
+    str_out = "\n".join(["(%s) %s - %s" % (w['stage'], w['en'], w['ru']) for w in user['words']])
     telegram.sendMessage(user['chat_id'], str_out)
 
 def start(user, text):
