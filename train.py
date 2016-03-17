@@ -14,7 +14,6 @@ def startTrain(user, string):
                 if w['en']==user['train']['word']:
                     user['words'].remove(w)
                     telegram.sendMessage(user['chat_id'], "Deleted")
-
         else:
             try:
                 a = int(string) - 1

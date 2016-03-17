@@ -34,6 +34,9 @@ def addWord(user, string):
     string = re.sub(r'\Wk+', ' ', string)
     string = string.lower()
     #string = wnl.lemmatize(string)
+    if len(string) == 0:
+        telegram.sendMessage(user['chat_id'], "Wrong word")
+        return;
     string = string[0].upper() + string[1:]
 
     baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
