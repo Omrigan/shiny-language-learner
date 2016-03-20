@@ -1,16 +1,41 @@
 import secret_settings, requests
 import logging
+import json
 baseurl = 'https://api.telegram.org/bot'
 
 
 logger = logging.getLogger("bot")
-def sendMessage(chat_id, string):
+variantTrainKeyboard= json.dumps({
+        'keyboard': [
+        ['1', '2'],
+        ['3', '4'],
+        ['del', 'end']
+    ],
+       'resize_keyboard': True
+    })
+chooseTrainKeyboard= json.dumps({
+        'keyboard': [
+        ['eng->rus', 'rus->eng', 'write eng'],
+
+    ],
+       'resize_keyboard': True
+    })
+
+hideKeyboard = json.dumps({
+    'hide_keyboard': True,
+
+})
+
+def sendMessage(chat_id, string, *args, **kwargs):
     url = baseurl + secret_settings.bot['token'] + '/sendMessage'
-    resp = requests.get(url, params={
+    params={
         'chat_id': chat_id,
         'text': string,
         'timeout': 20,
-    })
+    }
+    if 'reply_markup' in kwargs:
+        params['reply_markup'] = kwargs['reply_markup']
+    resp = requests.get(url, params)
     if resp.status_code!=200:
         logger.error("Cannot send message %s - %s" % (chat_id, string))
     return resp
@@ -25,3 +50,7 @@ def getUpdates(offset):
     if updates.status_code!=200:
         logger.error("Cannot get updates %s" % (offset, ))
     return updates.json()['result']
+
+
+
+

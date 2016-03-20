@@ -4,7 +4,7 @@ import secret_settings, study_settings
 import telegram
 from nltk.stem import WordNetLemmatizer
 
-from train import startTrain, endTrain
+import train
 import random, re
 from enum import Enum
 
@@ -25,11 +25,9 @@ class States():
 logger = logging.getLogger("bot")
 help_text = open('docs/help.txt').read()
 changelog_text = open('docs/changelog.txt').read()
-wnl = WordNetLemmatizer()
+#wnl = WordNetLemmatizer()
 def addWord(user, string):
     baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
-    #correct = requests.get('http://suggestqueries.google.com/complete/search?client=firefox&q=%s' %(string)).json()
-
     string = re.sub(r'[^A-Za-z\s]', '', string)
     string = re.sub(r'\Wk+', ' ', string)
     string = string.lower()
@@ -37,7 +35,6 @@ def addWord(user, string):
     if len(string) == 0:
         telegram.sendMessage(user['chat_id'], "Wrong word")
         return;
-    string = string[0].upper() + string[1:]
 
     baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
     correction = requests.get(baseurl_correction, {'data': string}).text
@@ -48,6 +45,7 @@ def addWord(user, string):
         string = correction.find("option").string
 
 
+    string = string[0].upper() + string[1:]
     transtaltion = requests.get(baseurl, {
         'key': secret_settings.translate_yandex['token'],
         'lang': 'ru',
@@ -71,6 +69,12 @@ def addWord(user, string):
 
 params = {}
 
+
+
+
+
+
+
 def eraseLastWord(user, text):
     if(len(user['words'])>0):
         str_out = "%s - %s" % (user['words'][-1]['en'], user['words'][-1]['ru'])
@@ -90,13 +94,15 @@ def start(user, text):
 def help(user, text):
     telegram.sendMessage(user['chat_id'], help_text)
 
-
+def startTrain(user, text):
+    user['train']['type'] = 0
+    train.doTrain(user, text)
 
 comands = {
     'eraselast': eraseLastWord,
     'getlist': getListWord,
     'starttrain': startTrain,
-    'endtrain': endTrain,
+    'endtrain': train.endTrain,
     'start': start,
     'help': help
 }
@@ -128,7 +134,7 @@ def parseAction(chat_id, text):
             comands[cmd](user, text)
     else:
         if user['train']['type']!=0:
-            startTrain(user, text)
+            train.doTrain(user, text)
         elif user['state']==States.idle:
             addWord(user, text)
     users.save(user)
@@ -147,7 +153,11 @@ def getUpdates():
                 chat_id = u['message']['chat']['id']
                 text = u['message']['text']
                 params['offset'] = max(params['offset'], u['update_id']+1)
-                parseAction(chat_id, text)
+                try:
+                    parseAction(chat_id, text)
+                except Exception:
+                    logging.error('Parse error! (%s, %s)' %(chat_id, text))
+                    telegram.sendMessage('Parse error! Try again')
 
     db.meta.save(params)
 
