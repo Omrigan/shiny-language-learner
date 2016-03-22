@@ -7,15 +7,16 @@ baseurl = 'https://api.telegram.org/bot'
 logger = logging.getLogger("bot")
 variantTrainKeyboard= json.dumps({
         'keyboard': [
-        ['1', '2'],
-        ['3', '4'],
+        ['1', '3'],
+        ['2', '4'],
         ['del', 'end']
     ],
        'resize_keyboard': True
     })
 chooseTrainKeyboard= json.dumps({
         'keyboard': [
-        ['eng->rus', 'rus->eng', 'write eng'],
+        ['1', '2', '3'],
+        ['end']
 
     ],
        'resize_keyboard': True
@@ -25,6 +26,8 @@ hideKeyboard = json.dumps({
     'hide_keyboard': True,
 
 })
+
+
 
 def sendMessage(chat_id, string, *args, **kwargs):
     url = baseurl + secret_settings.bot['token'] + '/sendMessage'

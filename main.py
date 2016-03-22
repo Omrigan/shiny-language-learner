@@ -4,7 +4,7 @@ import secret_settings, study_settings
 import telegram
 from nltk.stem import WordNetLemmatizer
 
-import train
+import train, remainder
 import random, re
 from enum import Enum
 
@@ -38,7 +38,7 @@ def addWord(user, string):
 
     baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
     correction = requests.get(baseurl_correction, {'data': string}).text
-    correction = BeautifulSoup(correction)
+    correction = BeautifulSoup(correction, "lxml")
 
 
     if correction.find("option") is not None:
@@ -98,13 +98,31 @@ def startTrain(user, text):
     user['train']['type'] = 0
     train.doTrain(user, text)
 
+def addReamainder(user, text):
+    remainder.remove_job(user)
+    tokens = text.split(' ')
+    delta = datetime.timedelta()
+    if len(tokens)>=2:
+        tokens=tokens[1].replace(' ', '').split(':')
+        hours = int(tokens[0])
+        minutes = int(tokens[1])
+        delta = datetime.timedelta(hours=hours, minutes=minutes)
+    remainder.add_job(user, datetime.datetime.utcnow()+delta)
+    telegram.sendMessage(user['chat_id'], "Successfully set. Nearest at  %s" % (datetime.datetime.now()+delta,))
+
+def removeRemainder(user, text):
+    remainder.remove_job(user)
+    telegram.sendMessage(user['chat_id'], "Removed")
+
 comands = {
     'eraselast': eraseLastWord,
     'getlist': getListWord,
     'starttrain': startTrain,
     'endtrain': train.endTrain,
     'start': start,
-    'help': help
+    'help': help,
+    'setremainder': addReamainder,
+    'removeremainder': removeRemainder
 }
 
 def parseAction(chat_id, text):
@@ -129,7 +147,7 @@ def parseAction(chat_id, text):
                     'cadidacies': []
                 }
     if text[0]=='/': #Command
-        cmd = text[1:].lower()
+        cmd = text[1:].lower().split(' ')[0]
         if cmd in comands:
             comands[cmd](user, text)
     else:
@@ -156,8 +174,8 @@ def getUpdates():
                 try:
                     parseAction(chat_id, text)
                 except Exception:
-                    logging.error('Parse error! (%s, %s)' %(chat_id, text))
-                    telegram.sendMessage('Parse error! Try again')
+                    logging.error('Error! (%s, %s)' %(chat_id, text))
+                    telegram.sendMessage(chat_id, 'Parse error! Try again')
 
     db.meta.save(params)
 
@@ -167,7 +185,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true')
     args = parser.parse_args()
-    secret_settings.configure(args.debug)
 
 
 
@@ -187,6 +204,8 @@ if __name__ == "__main__":
 
 
     db = MongoClient(secret_settings.mongo['uri']).telegram
+    if not  db.validate_collection('users'):
+        db.create_collection('users')
     users = db.users
 
 

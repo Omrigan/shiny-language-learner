@@ -22,15 +22,21 @@ train_names = {
 
 
 
-
+choose = 'Choose train type:\n' \
+         '1-eng->rus\n' \
+         '2-rus->eng\n' \
+         '3-write eng'
 
 def doTrain(user, string):
     if user['train']['type']==0:
         user['train']['type'] = -1
-        telegram.sendMessage(user['chat_id'], 'Choose train type', reply_markup=telegram.chooseTrainKeyboard)
+        telegram.sendMessage(user['chat_id'], choose, reply_markup=telegram.chooseTrainKeyboard)
     elif user['train']['type']==-1:
-        user['train']['type'] = train_names[string]
-        trains[user['train']['type']](user, string, overwrite=True)
+        if string=='end':
+            endTrain(user,string)
+        else:
+            user['train']['type'] = int(string)
+            trains[user['train']['type']](user, string, overwrite=True)
     else:
         trains[user['train']['type']](user, string)
 
@@ -86,7 +92,11 @@ def doVariantTrain(user, string, overwrite=False):
     else:
         out_str += "Not enough words\n"
         user['train']['type'] = 0
-    telegram.sendMessage(user['chat_id'], out_str, reply_markup=telegram.variantTrainKeyboard)
+    if user['train']['type'] == 0:
+        telegram.sendMessage(user['chat_id'], out_str, reply_markup=telegram.hideKeyboard)
+    else:
+        telegram.sendMessage(user['chat_id'], out_str, reply_markup=telegram.variantTrainKeyboard)
+
 
 def doTranslateTrain(user, string, overwrite=False):
     out_str=""
