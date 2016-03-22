@@ -15,5 +15,6 @@ RUN pip3 install --upgrade pip
 ADD . /root/bot
 RUN pip3 install --upgrade  -r /root/bot/requirements.txt
 RUN python3 -m nltk.downloader wordnet
+ENV BOT_ENV=production
 WORKDIR /root/bot
 CMD python3 /root/bot/main.py
