@@ -204,7 +204,7 @@ if __name__ == "__main__":
     error.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     logger.addHandler(access)
     logger.addHandler(error)
-    if args.debug:
+    if env=='debug':
         logging.basicConfig(level=logging.DEBUG)
         logging.debug("Debug mode")
 
