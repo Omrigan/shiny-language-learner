@@ -2,10 +2,11 @@ from flask import Flask
 from pymongo import MongoClient
 import secret_settings, study_settings
 import telegram
+import my_correction
 from nltk.stem import WordNetLemmatizer
-
+import traceback, sys
 import train, remainder
-import random, re
+import random, re, os
 from enum import Enum
 
 import time, datetime
@@ -13,8 +14,7 @@ import logging, argparse
 from xml.etree import ElementTree
 from bs4 import BeautifulSoup
 import requests
-app = Flask(__name__)
-
+env = os.getenv('BOT_ENV', 'staging')
 
 class States():
     idle = 1
@@ -25,17 +25,9 @@ class States():
 logger = logging.getLogger("bot")
 help_text = open('docs/help.txt').read()
 changelog_text = open('docs/changelog.txt').read()
-#wnl = WordNetLemmatizer()
-def addWord(user, string):
-    baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
-    string = re.sub(r'[^A-Za-z\s]', '', string)
-    string = re.sub(r'\Wk+', ' ', string)
-    string = string.lower()
-    #string = wnl.lemmatize(string)
-    if len(string) == 0:
-        telegram.sendMessage(user['chat_id'], "Wrong word")
-        return;
+wnl = WordNetLemmatizer()
 
+def correct(string):
     baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
     correction = requests.get(baseurl_correction, {'data': string}).text
     correction = BeautifulSoup(correction, "lxml")
@@ -43,8 +35,25 @@ def addWord(user, string):
 
     if correction.find("option") is not None:
         string = correction.find("option").string
+    return string
+
+def addWord(user, string):
+    baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
+    string = re.sub(r'[^A-Za-z\s]', '', string)
+    string = re.sub(r'\Wk+', ' ', string)
+    string = string.lower()
+
+    if len(string) == 0:
+        telegram.sendMessage(user['chat_id'], "Wrong word")
+        return
 
 
+    #string = correct(string)
+    string =my_correction.correct(string)
+    t = time.time()
+    if env!='debug':
+        string = wnl.lemmatize(string)
+    print(time.time() - t, ' secs')
     string = string[0].upper() + string[1:]
     transtaltion = requests.get(baseurl, {
         'key': secret_settings.translate_yandex['token'],
@@ -175,6 +184,7 @@ def getUpdates():
                     parseAction(chat_id, text)
                 except Exception:
                     logging.error('Error! (%s, %s)' %(chat_id, text))
+                    logging.error(traceback.print_exc())
                     telegram.sendMessage(chat_id, 'Parse error! Try again')
 
     db.meta.save(params)
@@ -182,10 +192,6 @@ def getUpdates():
 if __name__ == "__main__":
     global client
     global words
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--debug', action='store_true')
-    args = parser.parse_args()
-
 
 
     ###LOGGING
