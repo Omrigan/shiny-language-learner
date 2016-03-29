@@ -169,7 +169,6 @@ def parseAction(chat_id, text):
 
 
 
-
 def getUpdates():
     messeges = telegram.getUpdates(params['offset'])
     for u in messeges:
@@ -209,10 +208,14 @@ if __name__ == "__main__":
         logging.debug("Debug mode")
 
 
-    db = MongoClient(secret_settings.mongo['uri']).telegram
-    if not  db.validate_collection('users'):
+    db = MongoClient(secret_settings.mongo['uri']).get_default_database()
+    if not db.validate_collection('users'):
         db.create_collection('users')
     users = db.users
+    if 'remainders' not in db.collection_names():
+        db.create_collection('remainders')
+    remainder.recover_jobs()
+
 
 
 
