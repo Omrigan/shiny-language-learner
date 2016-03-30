@@ -47,9 +47,8 @@ def addWord(user, string):
         telegram.sendMessage(user['chat_id'], "Wrong word")
         return
 
-
-    #string = correct(string)
-    string =my_correction.correct(string)
+    string = correct(string)
+    #string =my_correction.correct(string)
     t = time.time()
     if env!='debug':
         string = wnl.lemmatize(string)
