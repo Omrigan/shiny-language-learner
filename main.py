@@ -205,11 +205,11 @@ if __name__ == "__main__":
     logger.addHandler(error)
     if env=='debug':
         logging.basicConfig(level=logging.DEBUG)
-        logging.debug("Debug mode")
+    logging.warning("Cofiguration: %s" %(env,))
 
 
     db = MongoClient(secret_settings.mongo['uri']).get_default_database()
-    if not db.validate_collection('users'):
+    if 'users' not in db.collection_names():
         db.create_collection('users')
     users = db.users
     if 'remainders' not in db.collection_names():
