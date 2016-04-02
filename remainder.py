@@ -4,7 +4,8 @@ from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 from pytz import utc
 from pymongo import MongoClient
-import secret_settings, telegram
+import secret_settings
+from . import telegram
 import time
 import logging
 import datetime

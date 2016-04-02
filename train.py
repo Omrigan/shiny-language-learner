@@ -1,6 +1,7 @@
-import random, telegram
+import random
+from . import telegram
 import datetime
-import study_settings
+from . import study_settings
 
 params = {}
 

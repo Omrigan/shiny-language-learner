@@ -1,11 +1,12 @@
 from flask import Flask
 from pymongo import MongoClient
-import study_settings
-import telegram
-import my_correction
+
+from . import study_settings
+from . import telegram
+from . import my_correction
 from nltk.stem import WordNetLemmatizer
 import traceback, sys
-import train, remainder
+from . import train, remainder
 import random, re, os
 from enum import Enum
 
@@ -23,9 +24,10 @@ class States():
 
 class App():
     def __init__(self, settings):
+        dirname = os.path.dirname(os.path.realpath(__file__))+'/'
         self.logger = logging.getLogger("bot")
-        self.help_text = open('docs/help.txt').read()
-        self.changelog_text = open('docs/changelog.txt').read()
+        self.help_text = open(dirname+'docs/help.txt').read()
+        self.changelog_text = open(dirname+'docs/changelog.txt').read()
         self.settings = settings
 
 
@@ -56,10 +58,12 @@ class App():
 
 
         self.params['offset'] = 0
-        logging.warning('Started')
+        logging.warning('Constructed')
+    def listen(self):
         while True:
             self.getUpdates()
             time.sleep(0.1)
+
         #app.run()
 
 

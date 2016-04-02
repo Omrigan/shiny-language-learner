@@ -1,5 +1,5 @@
 import re, collections
-
+import os
 def words(text):
     return re.findall('[a-z]+', text.lower())
 
@@ -8,8 +8,8 @@ def train(features):
     for f in features:
         model[f] += 1
     return model
-
-NWORDS = train(words(open('big.txt').read()))
+dirname = os.path.dirname(os.path.realpath(__file__))+'/'
+NWORDS = train(words(open(dirname+'big.txt').read()))
 alphabet = 'abcdefghijklmnopqrstuvwxyz'
 
 def edits1(word):
