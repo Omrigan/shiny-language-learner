@@ -29,7 +29,7 @@ class App():
         self.help_text = open(dirname+'docs/help.txt').read()
         self.changelog_text = open(dirname+'docs/changelog.txt').read()
         self.settings = settings
-
+        remainder.configure(settings)
 
         ###LOGGING
         access = logging.FileHandler('access.log')
@@ -60,6 +60,7 @@ class App():
         self.params['offset'] = 0
         logging.warning('Constructed')
     def listen(self):
+        logging.warning('Listening')
         while True:
             self.getUpdates()
             time.sleep(0.1)

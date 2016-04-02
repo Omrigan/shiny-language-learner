@@ -4,7 +4,6 @@ from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 from pytz import utc
 from pymongo import MongoClient
-import secret_settings
 from . import telegram
 import time
 import logging
@@ -18,13 +17,13 @@ job_defaults = {
     'coalesce': False,
     'max_instances': 3
 }
+def configure(settings):
+    global remainders, scheduler
+    remainders = MongoClient(settings.mongo['uri']).get_default_database().remainders
 
-remainders = MongoClient(secret_settings.mongo['uri']).get_default_database().remainders
-
-
-scheduler = BackgroundScheduler(executors=executors, job_defaults=job_defaults,
-                                timezone=utc)
-scheduler.start()
+    scheduler = BackgroundScheduler(executors=executors, job_defaults=job_defaults,
+                                    timezone=utc)
+    scheduler.start()
 def recover_jobs():
     for r in remainders.find():
         def func():
