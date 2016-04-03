@@ -6,12 +6,14 @@ First of all, you have to add some words to wordlist.
 Just write any english word, and you will get an instant translation, and the word will be added to wordlist.
 You can start train with /starttrain command. 
 There are three types of trains: 
+
 1. rus->eng
 2. eng->rus
 3. write an English translation
 
 ##Deployment
 To run this project by yourself, you have to:
+
 1. Create a new script in any place
 2. Import english_bot.py
 3. Create an instance of App class, passing there a secret_settings object. The example of secret_settings is present in repo
