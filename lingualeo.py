@@ -1,6 +1,6 @@
 import requests
 
-
+#Dummy change
 class LinguaLeo:
     def __init__(self, email, password):
         self.email = email
