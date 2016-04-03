@@ -21,15 +21,19 @@ def configure(settings):
     global remainders, scheduler
     remainders = MongoClient(settings.mongo['uri']).get_default_database().remainders
 
-    scheduler = BackgroundScheduler(executors=executors, job_defaults=job_defaults,
-                                    timezone=utc)
-    scheduler.start()
+remainders = MongoClient(secret_settings.mongo['uri']).get_default_database().remainders
+
+
+scheduler = BackgroundScheduler(executors=executors, job_defaults=job_defaults,
+                                timezone=utc)
+scheduler.start()
 def recover_jobs():
     for r in remainders.find():
         def func():
             telegram.sendMessage(r['chat_id'], "Hey! It is time to learn")
         scheduler.add_job(func, 'interval', days=1, next_run_time = r['time_utc'], id ='%s_1' %(r['chat_id'],) )
 
+        scheduler.add_job(func, 'interval', days=1, next_run_time=r['time_utc'], id='%s_1' % (r['chat_id'],))
 
 
 def add_job(user, time_utc):
