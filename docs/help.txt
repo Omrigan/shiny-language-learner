@@ -3,5 +3,5 @@ After adding at least 8 words, you may start training with /starttrain and end w
 While training you will be proposed with one English word and four Russian translates and you need to choose the correct one
 To erase last added word print /eraselast
 To view list of all words print /getlist
-Built using Yandex.Translate api.
+Built with Yandex.Translate api.
 omrigann@gmail.com
