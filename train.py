@@ -50,22 +50,14 @@ def do_variant_train(user, string, overwrite=False):
     lang_original = langs[user['train']['type']]['original']
     lang_candidacies = langs[user['train']['type']]['candidacies']
     if not overwrite:
-        if string == 'del':
-            for w in user['words']:
-                if w[lang_original] == user['train']['word']:
-                    user['words'].remove(w)
-                    telegram.send_message(user['chat_id'], "Deleted")
-        elif string == 'end':
-            end_train(user, string)
-            return
-        else:
+
             try:
                 a = int(string) - 1
             except ValueError:
                 telegram.send_message(user['chat_id'], "Error parse!")
                 return
             for w in user['words']:
-                if w[lang_original] == user['train']['word']:
+                if w == user['train']['word']:
                     if user['train']['correct'] == a:
                         out_str += "Correct\n"
                         if w['stage'] < study_settings.max_stage:
@@ -84,9 +76,9 @@ def do_variant_train(user, string, overwrite=False):
             word_list = word_list[0:4]
             user['train']['word_list'] = word_list
             cnt = random.randint(0, 3)
-            user['train']['word'] = word_list[cnt][lang_original]
+            user['train']['word'] = word_list[cnt]
             user['train']['correct'] = cnt
-        out_str += user['train']['word'] + "\n"
+        out_str += user['train']['word'][lang_original] + "\n"
         for i, w in zip(range(4), user['train']['word_list']):
             out_str += "%s - %s\n" % (i + 1, w[lang_candidacies])
         out_str += 'Print "del" to delete this word'
@@ -104,7 +96,7 @@ def do_translate_train(user, string, overwrite=False):
     was_incorrect = False
     if not overwrite:
         for w in user['words']:
-            if w['ru'] == user['train']['word']:
+            if w['ru'] == user['train']['word']['ru']:
                 if w['en'].lower() == string.lower():
                     out_str += "Correct\n"
                     if w['stage'] < study_settings.max_stage:
@@ -120,9 +112,9 @@ def do_translate_train(user, string, overwrite=False):
     if len(sup) > 1:
         if not was_incorrect:
             word = copy.deepcopy(random.choice(sup))
-            user['train']['word'] = word['ru']
+            user['train']['word'] = word
             user['train']['shuffled'] = ''.join(random.sample(word['en'].lower(), len(word['en'])))
-        out_str += user['train']['word'] + "\n"
+        out_str += user['train']['word']['ru'] + "\n"
         if 'shuffled' in user['train']:
             out_str += user['train']['shuffled'] + "\n"
     else:

@@ -114,14 +114,10 @@ class App:
 
     params = {}
 
-    def erase_last_word(self, user, text):
-        if len(user['words']) > 0:
-            str_out = "%s - %s" % (user['words'][-1]['en'], user['words'][-1]['ru'])
-            user['words'] = user['words'][:-1]
-            telegram.send_message(user['chat_id'], "Last word erased\n" + str_out)
+
 
     def get_list_word(self, user, text):
-        str_out = "\n".join(["(%s) %s - %s" % (w['stage'], w['en'], w['ru']) for w in user['words']])
+        str_out = "\n".join(["%s: (%s) %s - %s" % (i+1, w['stage'], w['en'], w['ru']) for i, w in zip(range(10**10),user['words'])])
         telegram.send_message(user['chat_id'], str_out)
 
     def start(self, user, text):
@@ -154,11 +150,27 @@ class App:
         remainder.remove_job(user)
         telegram.send_message(user['chat_id'], "Removed")
 
+    def remove(self, user, text):
+        if user['train']['type'] != 0:
+            for w in user['words']:
+                if w == user['train']['word']:
+                    user['words'].remove(w)
+                    telegram.send_message(user['chat_id'], "Deleted")
+        else:
+            tokens = text.split(" ")
+            if len(tokens) > 1:
+                cnt = int(tokens[1]) - 1
+            else:
+                cnt = -1
+            str_out = "%s - %s" % (user['words'][cnt]['en'], user['words'][cnt]['ru'])
+            del user['words'][cnt]
+            telegram.send_message(user['chat_id'], "Word with index %s removed\n%s" % (cnt, str_out))
+
     comands = {
-        'eraselast': erase_last_word,
-        'getlist': get_list_word,
-        'starttrain': start_train,
-        'endtrain': train.end_train,
+        'list': get_list_word,
+        'rm': remove,
+        'train': start_train,
+        'end': train.end_train,
         'start': start,
         'help': help,
         'setremainder': add_remainder,

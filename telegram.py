@@ -11,14 +11,14 @@ variantTrainKeyboard = json.dumps({
     'keyboard': [
         ['1', '3'],
         ['2', '4'],
-        ['del', 'end']
+        ['/rm', '/end']
     ],
     'resize_keyboard': True
 })
 chooseTrainKeyboard = json.dumps({
     'keyboard': [
         ['1', '2', '3'],
-        ['end']
+        ['/end']
 
     ],
     'resize_keyboard': True

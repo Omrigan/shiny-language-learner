@@ -1,7 +1,7 @@
-Firstly,  add some words to wordlist. Just say me some English words
-After adding at least 8 words, you may start training with /starttrain and end with /endtrain
+Firstly, add some words to wordlist. Just say me some English words
+After adding at least 8 words, you may start training with /train and end with /end
 While training you will be proposed with one English word and four Russian translates and you need to choose the correct one
-To erase last added word print /eraselast
-To view list of all words print /getlist
+To remove word from word list use /rm index
+To view list of all words use /list
 Built with Yandex.Translate api.
 omrigann@gmail.com

@@ -1,6 +1,6 @@
-eraselast - Erase last word
-getlist - Get all words
-starttrain - Start simple train
-endtrain - End train
-setremainder - Set remainder
-removeremainder - Remove remainder
+list - Get all words
+rm - Remove word (takes number similar to list)
+train - Start a train
+end - End train
+setremainder - Set remainder (experimental)
+removeremainder - Remove remainder (experimental)
