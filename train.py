@@ -2,6 +2,7 @@ import random
 from . import telegram
 import datetime
 from . import study_settings
+import copy
 
 params = {}
 
@@ -118,10 +119,12 @@ def do_translate_train(user, string, overwrite=False):
                                 _['stage'] >= study_settings.min_translation_stage, user['words']))
     if len(sup) > 1:
         if not was_incorrect:
-            random.shuffle(sup)
-            user['train']['word'] = sup[0]['ru']
+            word = copy.deepcopy(random.choice(sup))
+            user['train']['word'] = word['ru']
+            user['train']['shuffled'] = ''.join(random.sample(word['en'].lower(), len(word['en'])))
         out_str += user['train']['word'] + "\n"
-        #out_str += 'Print "del" to delete this word'
+        if 'shuffled' in user['train']:
+            out_str += user['train']['shuffled'] + "\n"
     else:
         out_str += "Not enough words\n"
         user['train']['type'] = 0
@@ -135,6 +138,6 @@ trains = {
 }
 
 
-def end_train(user, string):
+def end_train(self, user, string):
     user['train']['type'] = 0
     telegram.send_message(user['chat_id'], "Train ended", reply_markup=telegram.hideKeyboard)
