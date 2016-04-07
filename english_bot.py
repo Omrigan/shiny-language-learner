@@ -155,7 +155,12 @@ class App:
             for w in user['words']:
                 if w == user['train']['word']:
                     user['words'].remove(w)
-                    telegram.send_message(user['chat_id'], "Deleted")
+                    str_out = "%s - %s" % (w['en'], w['ru'])
+                    telegram.send_message(user['chat_id'], "Deleted:\n%s" %(str_out, ))
+
+            train.do_train(user, text)
+
+
         else:
             tokens = text.split(" ")
             if len(tokens) > 1:

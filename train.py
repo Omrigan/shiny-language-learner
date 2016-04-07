@@ -49,6 +49,8 @@ def do_variant_train(user, string, overwrite=False):
     was_incorrect = False
     lang_original = langs[user['train']['type']]['original']
     lang_candidacies = langs[user['train']['type']]['candidacies']
+    if string[0]=='/':
+        overwrite = True
     if not overwrite:
 
             try:
@@ -131,5 +133,9 @@ trains = {
 
 
 def end_train(self, user, string):
+    if user['train']['type']==0:
+        out_str = "No train is in process"
+    else:
+        out_str = "Train ended"
     user['train']['type'] = 0
-    telegram.send_message(user['chat_id'], "Train ended", reply_markup=telegram.hideKeyboard)
+    telegram.send_message(user['chat_id'], out_str, reply_markup=telegram.hideKeyboard)
