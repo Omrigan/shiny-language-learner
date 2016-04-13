@@ -33,7 +33,7 @@ def recover_jobs():
         def func():
             telegram.send_message(r['chat_id'], "Hey! It is time to learn")
 
-        scheduler.add_job(func, 'interval', minutes=1, next_run_time=r['time_utc'], id='%s_1' % (r['chat_id'],))
+        scheduler.add_job(func, 'interval', days=1, next_run_time=r['time_utc'], id='%s_1' % (r['chat_id'],))
 
 
 def add_job(user, time_utc):
@@ -43,7 +43,7 @@ def add_job(user, time_utc):
     remainders.save({'chat_id': user['chat_id'],
                      'time_utc': time_utc
                      })
-    scheduler.add_job(func, 'interval', minutes=1, next_run_time=time_utc, id='%s_1' % (user['chat_id'],))
+    scheduler.add_job(func, 'interval', days=1, next_run_time=time_utc, id='%s_1' % (user['chat_id'],))
     logging.debug(scheduler.get_jobs())
 
 
