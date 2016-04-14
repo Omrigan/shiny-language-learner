@@ -16,18 +16,12 @@ langs = {
      }
 }
 
-train_names = {
-    'eng->rus': 1,
-    'rus->eng': 2,
-    'write eng': 3
-}
-
 
 
 choose = 'Choose train type:\n' \
-         '1-eng->rus\n' \
-         '2-rus->eng\n' \
-         '3-write eng'
+         '1-foreign->native\n' \
+         '2-native->foreign\n' \
+         '3-write foreign'
 
 
 def do_train(user, string):
