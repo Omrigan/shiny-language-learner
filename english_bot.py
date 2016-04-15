@@ -20,7 +20,7 @@ env = os.getenv('BOT_ENV', 'staging')
 
 class States:
     idle = 1
-    langs_asked= 2
+    langs_asked = 2
 
 
 class App:
@@ -86,17 +86,18 @@ class App:
             return
 
         # string = correct(string)
-        string = my_correction.correct(string)
-        t = time.time()
-        if env != 'debug':
-            string = self.wnl.lemmatize(string)
-        print(time.time() - t, ' secs')
+        if user['foreign'] == 'en':
+            string = my_correction.correct(string)
+            if env != 'debug':
+                string = self.wnl.lemmatize(string)
         string = string[0].upper() + string[1:]
         if 'direction' not in user:
-            user['direction'] = 'en-ru'
+            user['foreign'] = 'en'
+            user['native'] = 'ru'
+        direction = '%s-%s' % (user['foreign'], user['native'])
         transtaltion = requests.get(baseurl, {
             'key': self.settings.translate_yandex['token'],
-            'lang': user['direction'],
+            'lang': direction,
             'text': string
         })
         out_word = transtaltion.json()['text'][0]
@@ -116,10 +117,9 @@ class App:
 
     params = {}
 
-
-
     def get_list_word(self, user, text):
-        str_out = "\n".join(["%s: (%s) %s - %s" % (i+1, w['stage'], w['en'], w['ru']) for i, w in zip(range(10**10),user['words'])])
+        str_out = "\n".join(["%s: (%s) %s - %s" % (i + 1, w['stage'], w['en'], w['ru']) for i, w in
+                             zip(range(10 ** 10), user['words'])])
         telegram.send_message(user['chat_id'], str_out)
 
     def start(self, user, text):
@@ -132,20 +132,19 @@ Example: en-ru (en is foreign and ru is native)
 To get list of language codes write help
         """)
         user['state'] = States.langs_asked
-    def langs_ask(self, user, text):
 
+    def langs_ask(self, user, text):
         ans = requests.get('https://translate.yandex.net/api/v1.5/tr.json/getLangs',
                            {'key': self.settings.translate_yandex['token']})
         lang_list = ans.json()['dirs']
         if text not in lang_list:
             telegram.send_message(user['chat_id'], "Please, choose any of this:\n" + "\n".join(lang_list))
         else:
-            telegram.send_message(user['chat_id'], "\"%s\" have successfully chosen" %(text, ))
+            telegram.send_message(user['chat_id'], "\"%s\" have successfully chosen" % (text,))
             user['state'] = States.idle
-            user['direction'] = text
 
-
-
+            user['foreign'] = text[0:2]
+            user['native'] = text[3:5]
 
     def help(self, user, text):
         telegram.send_message(user['chat_id'], self.help_text)
@@ -176,7 +175,7 @@ To get list of language codes write help
                 if w == user['train']['word']:
                     user['words'].remove(w)
                     str_out = "%s - %s" % (w['en'], w['ru'])
-                    telegram.send_message(user['chat_id'], "Deleted:\n%s" %(str_out, ))
+                    telegram.send_message(user['chat_id'], "Deleted:\n%s" % (str_out,))
 
             train.do_train(user, text)
 
