@@ -238,7 +238,7 @@ To get list of language codes write help
     def get_updates(self):
         messages = telegram.get_updates(self.params['offset'])
         for u in messages:
-            if 'message' in u:
+            if 'message' in u and 'text' in u['message']:
                 if u['update_id'] < self.params['offset']:
                     print('Error')
                 else:
