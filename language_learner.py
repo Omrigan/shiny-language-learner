@@ -123,7 +123,7 @@ class App:
     def start(self, user, text):
         telegram.send_message(user['chat_id'], """
         Welcome
-        I am an EnglishWordRepeater bot.
+        I am an Shiny Language Learner bot.
         To learn how to use me, print /help
         """)
 

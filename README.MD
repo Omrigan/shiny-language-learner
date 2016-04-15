@@ -7,9 +7,9 @@ Just write any english word, and you will get an instant translation, and the wo
 You can start train with /starttrain command. 
 There are three types of trains: 
 
-1. rus->eng
-2. eng->rus
-3. write an English translation
+1. native->foreign
+2. foreign->native
+3. write a foreign translation
 
 ##Deployment
 To run this project by yourself, you have to:
