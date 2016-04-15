@@ -20,7 +20,7 @@ env = os.getenv('BOT_ENV', 'staging')
 
 class States:
     idle = 1
-    translates_proposed = 2
+    langs_asked = 2
 
 
 class App:
@@ -78,8 +78,8 @@ class App:
     def add_word(self, user, string):
 
         baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
-        string = re.sub(r'[^A-Za-z\s]', '', string)
-        string = re.sub(r'\Wk+', ' ', string)
+        # string = re.sub(r'[^A-Za-z\s]', '', string)
+        # string = re.sub(r'\Wk+', ' ', string)
         string = string.lower()
 
         if len(string) == 0:
@@ -87,15 +87,18 @@ class App:
             return
 
         # string = correct(string)
-        string = my_correction.correct(string)
-        t = time.time()
-        if env != 'debug':
-            string = self.wnl.lemmatize(string)
-        print(time.time() - t, ' secs')
+        if user['foreign'] == 'en':
+            string = my_correction.correct(string)
+            if env != 'debug':
+                string = self.wnl.lemmatize(string)
         string = string[0].upper() + string[1:]
+        if 'direction' not in user:
+            user['foreign'] = 'en'
+            user['native'] = 'ru'
+        direction = '%s-%s' % (user['foreign'], user['native'])
         transtaltion = requests.get(baseurl, {
             'key': self.settings.translate_yandex['token'],
-            'lang': 'ru',
+            'lang': direction,
             'text': string
         })
         out_word = transtaltion.json()['text'][0]
@@ -115,18 +118,34 @@ class App:
 
     params = {}
 
-
-
     def get_list_word(self, user, text):
-        str_out = "\n".join(["%s: (%s) %s - %s" % (i+1, w['stage'], w['en'], w['ru']) for i, w in zip(range(10**10),user['words'])])
+        str_out = "\n".join(["%s: (%s) %s - %s" % (i + 1, w['stage'], w['en'], w['ru']) for i, w in
+                             zip(range(10 ** 10), user['words'])])
         telegram.send_message(user['chat_id'], str_out)
 
     def start(self, user, text):
         telegram.send_message(user['chat_id'], """
-        Welcome
-        I am an Shiny Language Learner bot.
-        To learn how to use me, print /help
+Welcome!
+I am a bot.
+To learn how to use me, print /help.
+Now you have to choose you foreign and native language.
+Example: en-ru (en is foreign and ru is native)
+To get list of language codes write help
         """)
+        user['state'] = States.langs_asked
+
+    def langs_ask(self, user, text):
+        ans = requests.get('https://translate.yandex.net/api/v1.5/tr.json/getLangs',
+                           {'key': self.settings.translate_yandex['token']})
+        lang_list = ans.json()['dirs']
+        if text not in lang_list:
+            telegram.send_message(user['chat_id'], "Please, choose any of this:\n" + "\n".join(lang_list))
+        else:
+            telegram.send_message(user['chat_id'], "\"%s\" have successfully chosen" % (text,))
+            user['state'] = States.idle
+
+            user['foreign'] = text[0:2]
+            user['native'] = text[3:5]
 
     def help(self, user, text):
         telegram.send_message(user['chat_id'], self.help_text)
@@ -157,7 +176,7 @@ class App:
                 if w == user['train']['word']:
                     user['words'].remove(w)
                     str_out = "%s - %s" % (w['en'], w['ru'])
-                    telegram.send_message(user['chat_id'], "Deleted:\n%s" %(str_out, ))
+                    telegram.send_message(user['chat_id'], "Deleted:\n%s" % (str_out,))
 
             train.do_train(user, text)
 
@@ -208,11 +227,12 @@ class App:
             cmd = text[1:].lower().split(' ')[0]
             if cmd in self.comands:
                 self.comands[cmd](self, user, text)
-        else:
-            if user['train']['type'] != 0:
-                train.do_train(user, text)
-            elif user['state'] == States.idle:
-                self.add_word(user, text)
+        elif user['train']['type'] != 0:
+            train.do_train(user, text)
+        elif user['state'] == States.idle:
+            self.add_word(user, text)
+        elif user['state'] == States.langs_asked:
+            self.langs_ask(user, text)
         self.users.save(user)
 
     def get_updates(self):

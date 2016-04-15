@@ -39,7 +39,7 @@ def recover_jobs():
 def add_job(user, time_utc):
     def func():
         telegram.send_message(user['chat_id'], "Hey! It is time to learn")
-
+    remainders.remove({'chat_id': user['chat_id']})
     remainders.save({'chat_id': user['chat_id'],
                      'time_utc': time_utc
                      })

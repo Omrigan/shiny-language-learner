@@ -1,5 +1,5 @@
 #Language trainer bot
-This a bot for Telegram. It helps russian-speaking people remember english words.
+This a bot for Telegram. It helps people remember words from foreign language.
 
 ##How to use it?
 First of all, you have to add some words to wordlist. 
@@ -15,13 +15,12 @@ There are three types of trains:
 To run this project by yourself, you have to:
 
 1. Create a new script in any place
-2. Import english_bot.py
+2. Import language_learner.py
 3. Create an instance of App class, passing there a secret_settings object. The example of secret_settings is present in repo
 
 ##Upcoming features
 1. Lingualeo integration
-2. Any language
-3. Remainders
+
 
 ##Help
 I am searching for interested to help me in my project. 
