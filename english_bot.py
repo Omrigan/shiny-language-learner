@@ -76,6 +76,7 @@ class App:
         return string
 
     def add_word(self, user, string):
+
         baseurl = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
         # string = re.sub(r'[^A-Za-z\s]', '', string)
         # string = re.sub(r'\Wk+', ' ', string)
