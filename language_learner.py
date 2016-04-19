@@ -85,16 +85,15 @@ class App:
         if len(string) == 0:
             telegram.send_message(user['chat_id'], "Wrong word")
             return
+        if 'foreign' not in user:
+            user['foreign'] = 'en'
+            user['native'] = 'ru'
 
-        # string = correct(string)
         if user['foreign'] == 'en':
             string = my_correction.correct(string)
             if env != 'debug':
                 string = self.wnl.lemmatize(string)
         string = string[0].upper() + string[1:]
-        if 'direction' not in user:
-            user['foreign'] = 'en'
-            user['native'] = 'ru'
         direction = '%s-%s' % (user['foreign'], user['native'])
         transtaltion = requests.get(baseurl, {
             'key': self.settings.translate_yandex['token'],
