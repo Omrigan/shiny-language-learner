@@ -34,15 +34,18 @@ class App:
         remainder.configure(settings)
 
         ###LOGGING
+        fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         access = logging.FileHandler('access.log')
         access.setLevel(logging.INFO)
-        access.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        access.setFormatter(logging.Formatter(fmt))
 
         error = logging.FileHandler('error.log')
         error.setLevel(logging.ERROR)
-        error.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        error.setFormatter(logging.Formatter(fmt))
         self.logger.addHandler(access)
         self.logger.addHandler(error)
+
+        logging.basicConfig(format=fmt)
         if env == 'debug':
             logging.basicConfig(level=logging.DEBUG)
         logging.warning("Cofiguration: %s" % (env,))
