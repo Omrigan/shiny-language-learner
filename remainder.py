@@ -30,7 +30,7 @@ def configure(settings):
 
 def recover_jobs():
     for r in remainders.find():
-        r['time_utc'] += datetime.datetime(day=(datetime.datetime.utcnow() - r['time_utc']).day)
+        r['time_utc'] += datetime.timedelta(days=(datetime.datetime.utcnow() - r['time_utc']).days)
         remainders.save(r)
 
         def func():
