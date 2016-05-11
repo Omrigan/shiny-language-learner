@@ -30,7 +30,11 @@ def configure(settings):
 
 def recover_jobs():
     for r in remainders.find():
+        r['time_utc'] += datetime.datetime(day=(datetime.datetime.utcnow() - r['time_utc']).day)
+        remainders.save(r)
+
         def func():
+            nonlocal r
             telegram.send_message(r['chat_id'], "Hey! It is time to learn")
             logging.debug("Recovered job succeed. Chat id: %s" % (r['chat_id']))
 
@@ -39,8 +43,10 @@ def recover_jobs():
 
 def add_job(user, time_utc):
     def func():
+        nonlocal user
         telegram.send_message(user['chat_id'], "Hey! It is time to learn")
         logging.debug("Added job succeed. Chat id: %s" % (user['chat_id']))
+
     remainders.save({'chat_id': user['chat_id'],
                      'time_utc': time_utc
                      })
