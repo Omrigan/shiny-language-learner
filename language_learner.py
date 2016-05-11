@@ -32,14 +32,17 @@ class App:
         self.settings = settings
         self.wnl = WordNetLemmatizer()
         remainder.configure(settings)
+        logs_dir = 'logs/'
+        if not os.path.exists(logs_dir):
+            os.makedirs(logs_dir)
 
         ###LOGGING
         fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        access = logging.FileHandler('logs/access.log')
+        access = logging.FileHandler(logs_dir + 'access.log')
         access.setLevel(logging.INFO)
         access.setFormatter(logging.Formatter(fmt))
 
-        error = logging.FileHandler('logs/error.log')
+        error = logging.FileHandler(logs_dir + 'error.log')
         error.setLevel(logging.ERROR)
         error.setFormatter(logging.Formatter(fmt))
         self.logger.addHandler(access)
