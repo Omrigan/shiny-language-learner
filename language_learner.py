@@ -189,7 +189,7 @@ To get list of language codes write help
             if len(tokens) > 1:
                 cnt = int(tokens[1])
                 if cnt > 0:
-                    cnt = -1
+                    cnt -= 1
             else:
                 cnt = -1
             str_out = "%s - %s" % (user['words'][cnt]['en'], user['words'][cnt]['ru'])
