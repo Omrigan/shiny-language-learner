@@ -34,15 +34,18 @@ class App:
         remainder.configure(settings)
 
         ###LOGGING
-        access = logging.FileHandler('access.log')
+        fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        access = logging.FileHandler('logs/access.log')
         access.setLevel(logging.INFO)
-        access.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        access.setFormatter(logging.Formatter(fmt))
 
-        error = logging.FileHandler('error.log')
+        error = logging.FileHandler('logs/error.log')
         error.setLevel(logging.ERROR)
-        error.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        error.setFormatter(logging.Formatter(fmt))
         self.logger.addHandler(access)
         self.logger.addHandler(error)
+
+        logging.basicConfig(format=fmt)
         if env == 'debug':
             logging.basicConfig(level=logging.DEBUG)
         logging.warning("Cofiguration: %s" % (env,))
@@ -178,12 +181,12 @@ To get list of language codes write help
                     telegram.send_message(user['chat_id'], "Deleted:\n%s" % (str_out,))
 
             train.do_train(user, text)
-
-
         else:
             tokens = text.split(" ")
             if len(tokens) > 1:
-                cnt = int(tokens[1]) - 1
+                cnt = int(tokens[1])
+                if cnt > 0:
+                    cnt = -1
             else:
                 cnt = -1
             str_out = "%s - %s" % (user['words'][cnt]['en'], user['words'][cnt]['ru'])
@@ -235,20 +238,23 @@ To get list of language codes write help
         self.users.save(user)
 
     def get_updates(self):
-        messages = telegram.get_updates(self.params['offset'])
-        for u in messages:
-            if 'message' in u and 'text' in u['message']:
-                if u['update_id'] < self.params['offset']:
-                    print('Error')
-                else:
-                    chat_id = u['message']['chat']['id']
-                    text = u['message']['text']
-                    self.params['offset'] = max(self.params['offset'], u['update_id'] + 1)
-                    try:
-                        self.parse_action(chat_id, text)
-                    except:
-                        logging.error('Error! (%s, %s)' % (chat_id, text))
-                        logging.error(traceback.print_exc())
-                        telegram.send_message(chat_id, 'An error occurred!')
-
+        try:
+            messages = telegram.get_updates(self.params['offset'])
+            for u in messages:
+                if 'message' in u and 'text' in u['message']:
+                    if u['update_id'] < self.params['offset']:
+                        print('Error')
+                    else:
+                        chat_id = u['message']['chat']['id']
+                        text = u['message']['text']
+                        self.params['offset'] = max(self.params['offset'], u['update_id'] + 1)
+                        try:
+                            self.parse_action(chat_id, text)
+                        except:
+                            logging.error('Error! (%s, %s)' % (chat_id, text))
+                            logging.error(traceback.print_exc())
+                            telegram.send_message(chat_id, 'An error occurred!')
+        except:
+            logging.error('Get updates error!')
+            logging.error(traceback.print_exc())
         self.db.meta.save(self.params)

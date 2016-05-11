@@ -9,14 +9,12 @@ params = {}
 langs = {
 
     1: {'original': 'en',
-     'candidacies': 'ru'
-     },
+        'candidacies': 'ru'
+        },
     2: {'original': 'ru',
-     'candidacies': 'en'
-     }
+        'candidacies': 'en'
+        }
 }
-
-
 
 choose = 'Choose train type:\n' \
          '1-foreign->native\n' \
@@ -43,27 +41,27 @@ def do_variant_train(user, string, overwrite=False):
     was_incorrect = False
     lang_original = langs[user['train']['type']]['original']
     lang_candidacies = langs[user['train']['type']]['candidacies']
-    if string[0]=='/':
+    if string[0] == '/':
         overwrite = True
     if not overwrite:
 
-            try:
-                a = int(string) - 1
-            except ValueError:
-                telegram.send_message(user['chat_id'], "Error parse!")
-                return
-            for w in user['words']:
-                if w == user['train']['word']:
-                    if user['train']['correct'] == a:
-                        out_str += "Correct\n"
-                        if w['stage'] < study_settings.max_stage:
-                            w['stage'] += 1
-                        w['expiration_date'] = datetime.datetime.utcnow() + study_settings.stages[w['stage']]
-                    else:
-                        out_str += "Incorrect\nThe correct one is %s \n" % (w[lang_candidacies],)
-                        if w['stage'] > study_settings.min_stage:
-                            w['stage'] -= 1
-                        was_incorrect = True
+        try:
+            a = int(string) - 1
+        except ValueError:
+            telegram.send_message(user['chat_id'], "Error parse!")
+            return
+        for w in user['words']:
+            if w == user['train']['word']:
+                if user['train']['correct'] == a:
+                    out_str += "Correct\n"
+                    if w['stage'] < study_settings.max_stage:
+                        w['stage'] += 1
+                    w['expiration_date'] = datetime.datetime.utcnow() + study_settings.stages[w['stage']]
+                else:
+                    out_str += "Incorrect\nThe correct one is %s \n" % (w[lang_candidacies],)
+                    if w['stage'] > study_settings.min_stage:
+                        w['stage'] -= 1
+                    was_incorrect = True
 
     if len(list(filter(lambda _: _['expiration_date'] < datetime.datetime.utcnow(), user['words']))) > 8:
         if not was_incorrect:
@@ -77,7 +75,6 @@ def do_variant_train(user, string, overwrite=False):
         out_str += user['train']['word'][lang_original] + "\n"
         for i, w in zip(range(4), user['train']['word_list']):
             out_str += "%s - %s\n" % (i + 1, w[lang_candidacies])
-        out_str += 'Print "del" to delete this word'
     else:
         out_str += "Not enough words\n"
         user['train']['type'] = 0
@@ -127,7 +124,7 @@ trains = {
 
 
 def end_train(self, user, string):
-    if user['train']['type']==0:
+    if user['train']['type'] == 0:
         out_str = "No train is in process"
     else:
         out_str = "Train ended"

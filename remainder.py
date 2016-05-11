@@ -30,16 +30,23 @@ def configure(settings):
 
 def recover_jobs():
     for r in remainders.find():
+        r['time_utc'] += datetime.timedelta(days=(datetime.datetime.utcnow() - r['time_utc']).days)
+        remainders.save(r)
+
         def func():
+            nonlocal r
             telegram.send_message(r['chat_id'], "Hey! It is time to learn")
+            logging.debug("Recovered job succeed. Chat id: %s" % (r['chat_id']))
 
         scheduler.add_job(func, 'interval', days=1, next_run_time=r['time_utc'], id='%s_1' % (r['chat_id'],))
 
 
 def add_job(user, time_utc):
     def func():
+        nonlocal user
         telegram.send_message(user['chat_id'], "Hey! It is time to learn")
-    remainders.remove({'chat_id': user['chat_id']})
+        logging.debug("Added job succeed. Chat id: %s" % (user['chat_id']))
+
     remainders.save({'chat_id': user['chat_id'],
                      'time_utc': time_utc
                      })
