@@ -96,7 +96,7 @@ class App:
             user['native'] = 'ru'
 
         if user['foreign'] == 'en':
-            string = my_correction.correct(string)
+            #string = my_correction.correct(string)
             if env != 'debug':
                 string = self.wnl.lemmatize(string)
         string = string[0].upper() + string[1:]
