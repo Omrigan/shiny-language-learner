@@ -4,3 +4,5 @@ requests
 bs4
 nltk
 apscheduler
+Celery
+schedule
