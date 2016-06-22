@@ -42,6 +42,7 @@ def send_message(chat_id, string, **kwargs):
     resp = requests.get(url, params)
     if resp.status_code != 200:
         logger.error("Cannot send message %s - %s" % (chat_id, string))
+        logger.error(resp.text)
     return resp
 
 
@@ -53,4 +54,5 @@ def get_updates(offset):
     })
     if updates.status_code != 200:
         logger.error("Cannot get updates %s" % (offset,))
+        logger.error(updates.text)
     return updates.json()['result']
