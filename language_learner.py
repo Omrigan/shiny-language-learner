@@ -138,6 +138,13 @@ Example: en-ru (en is foreign and ru is native)
 To get list of language codes write help
         """)
         user['state'] = States.langs_asked
+    def reask_langs(self, user, text):
+        telegram.send_message(user['chat_id'], """
+Now you have to choose you foreign and native language.
+Example: en-ru (en is foreign and ru is native)
+To get list of language codes write help
+        """)
+        user['state'] = States.langs_asked
 
     def langs_ask(self, user, text):
         ans = requests.get('https://translate.yandex.net/api/v1.5/tr.json/getLangs',
@@ -204,7 +211,7 @@ To get list of language codes write help
         'start': start,
         'help': help,
         'setremainder': add_remainder,
-        'removeremainder': remove_remainder
+        'reask': reask_langs
     }
 
     def parse_action(self, chat_id, text):
