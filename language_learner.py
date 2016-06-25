@@ -29,6 +29,8 @@ class App:
         self.logger = logging.getLogger("bot")
         self.help_text = open(dirname + 'docs/help.txt').read()
         self.changelog_text = open(dirname + 'docs/changelog.txt').read()
+        self.welcome_text = open(dirname + 'docs/welcome.txt').read()
+        self.about_text = open(dirname + 'docs/about.txt').read()
         self.settings = settings
         self.wnl = WordNetLemmatizer()
         remainder.configure(settings)
@@ -96,7 +98,7 @@ class App:
             user['native'] = 'ru'
 
         if user['foreign'] == 'en':
-            #string = my_correction.correct(string)
+            string = self.correct(string)
             if env != 'debug':
                 string = self.wnl.lemmatize(string)
         string = string[0].upper() + string[1:]
@@ -129,20 +131,14 @@ class App:
         telegram.send_message(user['chat_id'], str_out)
 
     def start(self, user, text):
-        telegram.send_message(user['chat_id'], """
-Welcome!
-I am a bot.
-To learn how to use me, print /help.
-Now you have to choose you foreign and native language.
-Example: en-ru (en is foreign and ru is native)
-To get list of language codes write help
-        """)
+        telegram.send_message(user['chat_id'], self.welcome_text)
         user['state'] = States.langs_asked
+
+
     def reask_langs(self, user, text):
         telegram.send_message(user['chat_id'], """
-Now you have to choose you foreign and native language.
-Example: en-ru (en is foreign and ru is native)
-To get list of language codes write help
+Now choose your native and foreign languages.
+Example: "en-ru" (en is foreign and ru is native)
         """)
         user['state'] = States.langs_asked
 
@@ -161,6 +157,9 @@ To get list of language codes write help
 
     def help(self, user, text):
         telegram.send_message(user['chat_id'], self.help_text)
+
+    def about(self, user, text):
+        telegram.send_message(user['chat_id'], self.about_text)
 
     def start_train(self, user, text):
         user['train']['type'] = 0
@@ -211,7 +210,8 @@ To get list of language codes write help
         'start': start,
         'help': help,
         'setremainder': add_remainder,
-        'reask': reask_langs
+        'reask': reask_langs,
+        'about': about
     }
 
     def parse_action(self, chat_id, text):

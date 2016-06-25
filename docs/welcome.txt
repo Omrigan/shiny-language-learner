@@ -1,0 +1,5 @@
+Welcome!
+I am a bot.
+To learn how to use me, print /help.
+Now choose your native and foreign languages.
+Example: "en-ru" (en is foreign and ru is native)
