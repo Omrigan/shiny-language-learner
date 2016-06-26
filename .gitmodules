@@ -1,0 +1,3 @@
+[submodule "language_learner_env"]
+	path = language_learner_env
+	url = https://github.com/Omrigan/language-learner-env
