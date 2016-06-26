@@ -10,10 +10,10 @@ from bs4 import BeautifulSoup
 from pymongo import MongoClient
 from nltk.stem.wordnet import WordNetLemmatizer
 
-from . import my_correction
-from . import study_settings
-from . import telegram
-from . import train, remainder
+#from language_learner import my_correction
+import study_settings
+import telegram
+import train, remainder
 
 env = os.getenv('BOT_ENV', 'staging')
 

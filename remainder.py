@@ -1,6 +1,6 @@
 from pytz import utc
 from pymongo import MongoClient
-from . import telegram
+import telegram
 import time
 import logging
 import datetime

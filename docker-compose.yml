@@ -1,0 +1,11 @@
+web:
+  build: .
+  environment:
+    - BOT_ENV=production
+  volumes:
+    - /var/log/language-learner:/root/bot/logs
+  links:
+    - db
+  restart: always
+db:
+  image: mongo

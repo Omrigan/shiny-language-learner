@@ -1,7 +1,7 @@
 import random
-from . import telegram
+import telegram
 import datetime
-from . import study_settings
+import study_settings
 import copy
 
 params = {}

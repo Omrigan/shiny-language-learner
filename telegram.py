@@ -2,7 +2,7 @@ import json
 import logging
 
 import requests
-import secret_settings
+from language_learner_env import secret_settings
 
 base_url = 'https://api.telegram.org/bot'
 
