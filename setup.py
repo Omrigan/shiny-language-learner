@@ -27,6 +27,6 @@ setup(
         'apscheduler',
         'Celery',
         'schedule',
-        'lxml',
+        #'lxml',
     ]
 )

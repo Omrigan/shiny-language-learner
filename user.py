@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-import secret_settings
+from language_learner_env import secret_settings
 
 db = MongoClient(secret_settings.mongo['uri']).telegram
 users = db.users

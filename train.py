@@ -123,7 +123,7 @@ trains = {
 }
 
 
-def end_train(self, user, string):
+def end_train(user, string):
     if user['train']['type'] == 0:
         out_str = "No train is in process"
     else:

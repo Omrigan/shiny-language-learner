@@ -15,7 +15,7 @@ import study_settings
 import telegram
 import train, remainder
 
-env = os.getenv('BOT_ENV', 'staging')
+env = os.getenv('BOT_ENV', 'debug')
 
 
 class States:
@@ -77,7 +77,7 @@ class App:
     def correct(self, string):
         baseurl_correction = 'http://service.afterthedeadline.com/checkDocument'
         correction = requests.get(baseurl_correction, {'data': string}).text
-        correction = BeautifulSoup(correction, "lxml")
+        correction = BeautifulSoup(correction,  "lxml")
 
         if correction.find("option") is not None:
             string = correction.find("option").string
